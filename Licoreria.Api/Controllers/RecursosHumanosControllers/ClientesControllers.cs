@@ -79,49 +79,48 @@ namespace Licoreria.Api.Controllers.RecursosHumanosControllers
             } 
         }
 
-        [HttpGet("optenerClientes")]
+        [HttpGet("obtenerClientes")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> OptenerClientes()
         {
             try
             {
-                var Datos = await _db.Gestion_Clientes
+                var datos = await _db.Gestion_Clientes
                     .AsNoTracking()
+                    .Where(c => c.Activo)
                     .OrderBy(c => c.ClienteId)
-                    .Where(c => c.Activo == true)
                     .Select(c => new
                     {
                         c.ClienteId,
-                        c.Nombre,
-                        c.ApellidoPaterno,
-                        c.ApellidoMaterno,
+                        Nombre = c.Nombre ?? "",
+                        ApellidoPaterno = c.ApellidoPaterno ?? "",
+                        ApellidoMaterno = c.ApellidoMaterno ?? "",
                         c.Celular,
-                        c.Email,
+                        Email = c.Email ?? "",
                         c.FechaNacimiento,
-                        c.Direccion,
-                        c.NumeroExterior,
-                        c.NumeroInterior,
-                        c.Colonia,
-                        c.Municipio,
-                        c.Estado,
-                        c.CodigoPostal,
+                        Direccion = c.Direccion ?? "",
+                        NumeroExterior = c.NumeroExterior ?? "",
+                        NumeroInterior = c.NumeroInterior ?? "",
+                        Colonia = c.Colonia ?? "",
+                        Municipio = c.Municipio ?? "",
+                        Estado = c.Estado ?? "",
+                        CodigoPostal = c.CodigoPostal ?? "",
                         c.FechaCreacion,
                         c.FechaActualizacion,
                         c.SucursalId
-
                     })
                     .ToArrayAsync();
-                return Ok(Datos);
 
-
+                return Ok(datos);
             }
             catch (Exception ex)
             {
                 return BadRequest(new
                 {
                     message = "Error al obtener a los clientes.",
-                    detalle = ex.Message
+                    detalle = ex.Message,
+                    inner = ex.InnerException?.Message
                 });
             }
         }
