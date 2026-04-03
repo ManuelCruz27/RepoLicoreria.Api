@@ -214,5 +214,111 @@ namespace Licoreria.Api.Controllers.RecursosHumanosControllers
 
             return Ok(new { message = "Cliente actualizado correctamente", clienteId = cliente.ClienteId });
         }
+
+        [HttpGet("BuscarEmpleado")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> BuscarEmpleado([FromQuery] string q)
+        {
+            try
+            {
+                q = (q ?? "").Trim();
+
+                if (string.IsNullOrWhiteSpace(q))
+                    return BadRequest(new { message = "Debes mandar un parámetro q" });
+
+                if(int.TryParse(q, out int id))
+                {
+                    var buscarID = await _db.Gestion_Clientes
+                        .AsNoTracking()
+                        .Where(e => e.ClienteId == id && e.Activo == true)
+                        .Select(c => new
+                        {
+                            c.ClienteId,
+                            Nombre = c.Nombre ?? "",
+                            ApellidoPaterno = c.ApellidoPaterno ?? "",
+                            ApellidoMaterno = c.ApellidoMaterno ?? "",
+                            c.Celular,
+                            Email = c.Email ?? "",
+                            c.FechaNacimiento,
+                            Direccion = c.Direccion ?? "",
+                            NumeroExterior = c.NumeroExterior ?? "",
+                            NumeroInterior = c.NumeroInterior ?? "",
+                            Colonia = c.Colonia ?? "",
+                            Municipio = c.Municipio ?? "",
+                            Estado = c.Estado ?? "",
+                            CodigoPostal = c.CodigoPostal ?? "",
+                            c.FechaCreacion,
+                            c.FechaActualizacion,
+                            c.SucursalId
+
+
+                        }).ToListAsync();
+                    return Ok(buscarID);
+                }
+
+                var tokens = q
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Where(t => t.Length > 0)
+                    .ToArray();
+
+                var query = _db.Gestion_Clientes.AsNoTracking().AsQueryable();
+
+                query = query.Where(e =>
+                (e.Nombre ?? "").Contains(q) ||
+                (e.ApellidoPaterno ?? "").Contains(q) ||
+                (e.ApellidoMaterno ?? "").Contains(q) ||
+                (e.Email ?? "").Contains(q) ||
+                ((e.Nombre ?? "") + " " + (e.ApellidoPaterno ?? "") + " " + (e.ApellidoMaterno ?? "")).Contains(q)
+                );
+
+                if(tokens.Length > 1)
+                {
+                    foreach(var t in tokens)
+                    {
+                        var token = t;
+                        query = query.Where(e =>
+                            ((e.Nombre ?? "") + " " + (e.ApellidoPaterno ?? "") + " " + (e.ApellidoMaterno ?? "")).Contains(token)
+                        );
+                    }
+                }
+
+                var clientes = await query
+                    .OrderBy(e => e.ClienteId)
+                    .Select(c => new
+                    {
+                        clienteID = c.ClienteId,
+                        Nombre = c.Nombre ?? "",
+                        ApellidoPaterno = c.ApellidoPaterno ?? "",
+                        ApellidoMaterno = c.ApellidoMaterno ?? "",
+                        c.Celular,
+                        Email = c.Email ?? "",
+                        c.FechaNacimiento,
+                        Direccion = c.Direccion ?? "",
+                        NumeroExterior = c.NumeroExterior ?? "",
+                        NumeroInterior = c.NumeroInterior ?? "",
+                        Colonia = c.Colonia ?? "",
+                        Municipio = c.Municipio ?? "",
+                        Estado = c.Estado ?? "",
+                        CodigoPostal = c.CodigoPostal ?? "",
+                        c.FechaCreacion,
+                        c.FechaActualizacion,
+                        c.SucursalId
+                    }).ToArrayAsync();
+                return Ok(clientes);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = "Error al obtener al cliente.",
+                    detalle = ex.Message,
+                    inner = ex.InnerException?.Message
+                });
+            }
+            
+
+
+        }
     }
 }
