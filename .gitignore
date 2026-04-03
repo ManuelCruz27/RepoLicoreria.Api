@@ -1,0 +1,9 @@
+.vs/
+bin/
+obj/
+*.user
+*.suo
+# Config sensibles
+appsettings.json
+# Config sensibles
+appsettings.Development.json

@@ -1,0 +1,2 @@
+Si se llega a crear otra tabla y no la encuentras buscala con (como lo que paso con la info_sucursal -> infosucursal)
+Ctrl + Shift + F
